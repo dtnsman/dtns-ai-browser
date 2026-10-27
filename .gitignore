@@ -32,3 +32,8 @@ desktop.ini
 *.key
 .env
 .env.*
+
+# 本地开源说明/隐私说明（不同步到远端）
+OPENSOURCE.md
+开源说明.md
+开源项目隐私保护说明.md
