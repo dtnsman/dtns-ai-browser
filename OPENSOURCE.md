@@ -1,4 +1,4 @@
-﻿# 开源说明（Open Source Notes）
+# 开源说明（Open Source Notes）
 
 本目录是 **DTNS Browser Proxy**（浏览器 Agent HTTP 代理）的对外开源发行版，
 由主工作区 `.` 按白名单整理生成，专门用于在 Gitee 上公开发布与提交。
@@ -14,7 +14,7 @@
 | `build.js` | 单文件 ESM 打包脚本 |
 | `package.json` | 包元信息与脚本 |
 | `README.md` | 项目总览与使用说明 |
-| `LICENSE` | MIT 许可证 |
+| `LICENSE` | GPLv3 许可证 |
 
 ## 二、明确不包含（已排除）
 
@@ -46,7 +46,9 @@ node build.js
 
 ## 四、许可证
 
-本项目以 MIT 许可证发布，详见 [LICENSE](./LICENSE)。
+本项目以 GNU General Public License v3.0（GPLv3）发布，详见 [LICENSE](./LICENSE)。
+
+你可以自由使用、修改和分发本项目，但衍生作品必须同样以 GPLv3 开源，并保留版权与许可声明。
 
 ## 五、同步与更新
 

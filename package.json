@@ -20,5 +20,5 @@
     "browser-extension",
     "mv3"
   ],
-  "license": "MIT"
+  "license": "GPL-3.0-or-later"
 }
