@@ -1,0 +1,24 @@
+{
+  "name": "dtns-browser-proxy",
+  "version": "2.0.0",
+  "private": true,
+  "description": "DTNS browser agent HTTP proxy — binary DTNS tunnel transport + Express-style router for MV3 browser extensions",
+  "main": "src/index.js",
+  "module": "dist/dtns-browser-proxy.mjs",
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "test:report": "node test/run-report.js",
+    "build": "node build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "dtns",
+    "http-proxy",
+    "tunnel",
+    "browser-extension",
+    "mv3"
+  ],
+  "license": "MIT"
+}

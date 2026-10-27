@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "AI灵驹 · 网页灵犀（DTNS 代理 2.0）",
+  "version": "2.0",
+  "description": "智能选取网页区域，生成机灵回复并自动复制；通过 DTNS 隧道暴露浏览器控制 API",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "clipboardWrite",
+    "clipboardRead",
+    "tabs",
+    "scripting",
+    "webNavigation",
+    "webRequest",
+    "debugger"
+  ],
+  "host_permissions": [
+    "ws://*/*",
+    "wss://*/*",
+    "http://*/*",
+    "https://*/*",
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "commands": {
+    "start-smart-reply": {
+      "suggested_key": {
+        "default": "Alt+S"
+      },
+      "description": "启动机灵回复选区"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

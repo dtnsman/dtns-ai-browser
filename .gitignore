@@ -1,0 +1,34 @@
+﻿# 依赖与构建产物
+node_modules/
+dist/
+build/
+out/
+*.log
+
+# 临时文件、测试产物
+tmp-*
+*.tmp
+*.temp
+test/
+test-fixture.html
+*.test.js
+test-results/
+coverage/
+
+# 排除目录（不开源）
+dtns.http-proxy-site/
+artifacts/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# 私密信息
+*.pem
+*.key
+.env
+.env.*

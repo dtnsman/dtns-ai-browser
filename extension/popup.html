@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 灵驹 · 网页智能回复助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            width: 420px;
+            font-family: 'Segoe UI', 'SF Pro Text', 'Roboto', system-ui, sans-serif;
+            background: linear-gradient(145deg, #1e1f2c 0%, #171824 100%);
+            color: #f0f3fa;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 18px 20px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .title span {
+            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .status-badge.connected {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-badge.connecting {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .status-badge.disconnected {
+            background: #ef4444;
+            color: white;
+        }
+
+        .main-card {
+            padding: 20px;
+        }
+
+        .action-btn {
+            width: 100%;
+            background: linear-gradient(95deg, #6d28d9, #3b82f6);
+            border: none;
+            border-radius: 60px;
+            padding: 14px 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(95deg, #7c3aed, #2563eb);
+            transform: translateY(-1px);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .info-card {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            color: #9ca3cf;
+        }
+
+        .info-value {
+            font-size: 0.7rem;
+            font-family: monospace;
+            word-break: break-all;
+            color: #60a5fa;
+        }
+
+        .api-url {
+            font-size: 0.7rem;
+            font-family: monospace;
+            word-break: break-all;
+            background: #0f0f17;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .api-url:hover {
+            background: #1a1a2a;
+            border: 1px solid #60a5fa;
+            padding: 7px;
+        }
+
+        .api-url-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .copy-btn, .open-btn {
+            background: rgba(96, 165, 250, 0.2);
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            color: #60a5fa;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover, .open-btn:hover {
+            background: rgba(96, 165, 250, 0.4);
+        }
+
+        .status-message {
+            background: #0f0f17;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.75rem;
+            margin-top: 12px;
+        }
+
+        .shortcut-note {
+            font-size: 0.65rem;
+            text-align: center;
+            background: #20222e;
+            padding: 8px;
+            border-radius: 28px;
+            margin-top: 12px;
+        }
+
+        kbd {
+            background: #2d2f3e;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 0.7rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            z-index: 1000;
+            animation: fadeInOut 2s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="title">
+        <span>🦄 AI 灵驹</span>
+        <span class="status-badge" id="registerStatus">初始化中</span>
+    </div>
+</div>
+<div class="main-card">
+    <!-- <button id="startSmartBtn" class="action-btn">
+        🤖✨ 机灵回复 (选取网页区域)
+    </button> -->
+
+    <!-- popup.html - 在 main-card 内部添加配置按钮和面板 -->
+
+    <!-- 在 action-btn 后面添加配置按钮 -->
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button id="startSmartBtn" class="action-btn" style="flex: 2; margin-bottom: 0;">
+            🤖✨ 机灵回复
+        </button>
+        <button id="configToggleBtn" class="action-btn" style="flex: 1; background: linear-gradient(95deg, #4b5563, #374151); margin-bottom: 0;">
+            ⚙️ 配置
+        </button>
+    </div>
+
+    <!-- 配置面板（初始隐藏） -->
+    <div id="configPanel" style="display: none; margin-bottom: 16px;">
+        <div class="info-card" style="background: rgba(0, 0, 0, 0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-weight: 600;">⚙️ 连接配置</span>
+                <button id="closeConfigBtn" style="background: none; border: none; color: #9ca3cf; cursor: pointer; font-size: 18px;">✕</button>
+            </div>
+            
+            <!-- 客户端ID配置 -->
+            <div style="margin-bottom: 16px;">
+                <div class="info-label" style="margin-bottom: 6px;">🆔 客户端ID</div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="clientIdInput" class="api-url" style="flex: 2; background: #0f0f17; border: 1px solid #2d2f3e; padding: 8px 12px; font-family: monospace; font-size: 0.7rem; color: #60a5fa;" placeholder="输入客户端ID">
+                    <button id="saveClientIdBtn" class="copy-btn" style="padding: 0 12px;">💾 保存</button>
+                    <button id="generateClientIdBtn" class="copy-btn" style="padding: 0 12px;">🎲 生成新ID</button>
+                </div>
+                <div class="info-label" style="margin-top: 4px; font-size: 0.6rem;">
+                    💡 更改后API地址变为: http://browser.[ID].html.dtns.top
+                </div>
+            </div>
+            
+            <!-- 服务器地址配置 -->
+            <div style="margin-bottom: 16px;">
+                <div class="info-label" style="margin-bottom: 6px;">🌐 WebSocket服务器</div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="serverUrlInput" class="api-url" style="flex: 2; background: #0f0f17; border: 1px solid #2d2f3e; padding: 8px 12px; font-family: monospace; font-size: 0.7rem; color: #60a5fa;" placeholder="wss://res.dtns.top/tunnel">
+                    <button id="saveServerUrlBtn" class="copy-btn" style="padding: 0 12px;">💾 保存</button>
+                </div>
+            </div>
+            
+            <!-- 操作按钮组 -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <button id="reconnectBtn" class="copy-btn" style="flex: 1; padding: 6px;">🔄 强制重连</button>
+                <button id="resetConfigBtn" class="copy-btn" style="flex: 1; padding: 6px;">🔄 重置配置</button>
+            </div>
+            
+            <!-- 状态消息 -->
+            <div id="configStatusMsg" class="info-label" style="color: #f59e0b; font-size: 0.65rem; text-align: center;"></div>
+        </div>
+    </div>
+    
+    <div class="info-card">
+        <div class="info-row">
+            <span class="info-label">🌐 HTTP API 地址</span>
+            <span class="info-label" id="apiStatus"></span>
+        </div>
+        <div class="api-url" id="apiUrlContainer">
+            <span class="api-url-text" id="apiUrl">加载中...</span>
+            <button class="copy-btn" id="copyApiUrlBtn">📋 复制</button>
+            <button class="open-btn" id="openApiUrlBtn">🔗 打开</button>
+        </div>
+        <div class="info-label" style="margin-top: 12px;">📋 可用接口</div>
+        <div class="info-value" style="font-size: 0.65rem; margin-top: 4px;">
+            📍 GET  /health                    - 健康检查<br>
+            📍 GET  /api/info                  - 插件信息<br>
+            📍 GET  /api/domains               - 查看域名<br>
+            🤖 POST /api/smart_reply           - 机灵回复<br>
+            📄 GET  /api/page/info             - 页面信息<br>
+            📄 GET  /api/page/visible-text     - 可见文本<br>
+            🔍 POST /api/evaluate              - 执行JS<br>
+            🖱️ POST /api/click                 - 点击元素<br>
+            🖱️ POST /api/click/at              - 坐标点击<br>
+            ⌨️ POST /api/type                  - 输入文本<br>
+            🔗 POST /api/navigate              - 导航<br>
+            📋 POST /api/clipboard/copy        - 复制文本<br>
+            📋 GET  /api/clipboard/read        - 读取剪贴板<br>
+            📸 POST /api/screenshot            - 截图
+        </div>
+    </div>
+    
+    <div class="status-message" id="statusMsg">
+        💡 提示: 点击API地址可打开新标签页访问
+    </div>
+    
+    <div class="shortcut-note">
+        ⌨️ 快捷键 <kbd>Alt</kbd> + <kbd>S</kbd> 快速选区<br>
+        🌐 任意设备可调用HTTP API控制此浏览器
+    </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
