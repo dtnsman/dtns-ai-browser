@@ -16,6 +16,7 @@ const { NetworkMonitor } = require('./network-monitor');
 const { ConsoleCollector } = require('./console-collector');
 const { ScreenshotScheduler } = require('./screenshot-scheduler');
 const { registerBrowserRoutes } = require('./routes');
+const { DISCOVERY_PATHS } = require('./api-catalog');
 
 const VERSION = '2.0.0';
 const DOMAIN_SUFFIX = '.html.dtns.top';
@@ -41,6 +42,7 @@ function browserDomain(clientId, prefix) {
  * @param {string} [options.domainPrefix]  first label of the tunnel domain (default "browser2")
  * @param {string} [options.wsUrl]         override the server URL
  * @param {string} [options.token]         require bearer auth on every request
+ * @param {string[]} [options.publicPaths] paths exempt from `token` (defaults to the discovery document)
  * @param {object} [options.WebSocket]     WebSocket implementation (defaults to global)
  * @param {number} [options.maxBodySize]   request body cap in bytes
  * @param {boolean}[options.exposeErrors]  include error messages in 5xx bodies
@@ -76,6 +78,9 @@ async function createBrowserAgent(options) {
     wsUrl: opts.wsUrl || cfg.wsServerUrl,
     WebSocket: opts.WebSocket,
     token: opts.token,
+    // The catalog must answer before the caller owns a token, otherwise it can
+    // never be discovered. Pass [] to put it behind auth again.
+    publicPaths: opts.publicPaths || DISCOVERY_PATHS,
     exposeErrors: opts.exposeErrors,
     maxBodySize: opts.maxBodySize,
     heartbeatInterval: opts.heartbeatInterval,

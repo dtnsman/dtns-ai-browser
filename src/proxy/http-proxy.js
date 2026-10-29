@@ -55,6 +55,12 @@ class HttpProxyApp extends Emitter {
     this.wsUrl = opts.wsUrl || 'wss://res2.dtns.top/tunnel';
     this.clientId = opts.clientId || ('proxy-' + randomHex(6));
     this.token = opts.token ? String(opts.token).trim() : '';
+    // Paths exempt from token auth. Only meaningful when `token` is set; the
+    // agent passes its discovery document here so callers can learn the API
+    // before they own a token. Null keeps every path behind auth (legacy).
+    this.publicPaths = Array.isArray(opts.publicPaths)
+      ? opts.publicPaths.slice()
+      : (opts.publicPaths || null);
     this.exposeErrors = !!opts.exposeErrors;
     this.maxBodySize = opts.maxBodySize || 1024 * 1024;
     this.cors = opts.cors === false ? false : Object.assign({}, DEFAULT_CORS, opts.cors || {});
@@ -388,6 +394,7 @@ class HttpProxyApp extends Emitter {
     try {
       this.router.handle(req, res, {
         authCheck: this.token ? (request) => this._checkAuth(request) : null,
+        publicPaths: this.publicPaths,
         maxBodySize: this.maxBodySize,
         exposeErrors: this.exposeErrors,
         emitError: (error) => {

@@ -76,7 +76,7 @@
 ### 4.1 分层
 
 ```
-                    routes.js  （69 个端点，只做参数 → 能力 → 响应）
+                    routes.js  （71 个端点，只做参数 → 能力 → 响应）
                          │
      ┌───────────────────┴────────────────────┐
      │  HttpProxyApp（http-proxy.js, 490 行）  │  生命周期 / 鉴权 / CORS / 响应编码
@@ -124,7 +124,9 @@ Promise 接口，因此测试时替换为 `test/support/mock-chrome.js` 即可�
 | `proxy/router.js` | 513 | Request/Response、路径编译与匹配、中间件栈、错误收敛 |
 | `proxy/http-proxy.js` | 490 | 组装、CORS、鉴权、请求分发、WebSocket 升级、热重绑 |
 | `proxy/websocket.js` | 137 | 透传连接（text/binary、关闭码映射） |
-| `agent/routes.js` | 791 | 69 个端点，含参数校验与响应整形 |
+| `agent/routes.js` | 916 | 71 个端点，含参数校验与响应整形 |
+| `agent/api-catalog.js` | 707 | 端点元数据（分组 / 参数 / 只读 / 危险），`/api.json` 的单一数据源 |
+| `agent/api-descriptor.js` | 154 | 用 catalog + 实时隧道域名生成发现文档 |
 | `agent/chrome-adapter.js` | 165 | 唯一 `chrome.*` 访问点，MV2/MV3 回调与 Promise 归一 |
 | `agent/tab-bridge.js` | 162 | content-script RPC，注入回退与超时 |
 | `agent/debugger-hub.js` | 155 | 每标签页单一 debugger 会话，引用计数复用 |
@@ -342,7 +344,7 @@ L621 甚至写了「attach 失败就 detach 再 attach」的补偿逻辑，说�
 | 能力 | 旧版 | 本版 | 兼容性 |
 |------|------|------|--------|
 | 域名格式 | `browser.<clientId>.html.dtns.top` | `browser2.<clientId>.html.dtns.top` | ⚠️ 首段不同，见 §10.6 |
-| 69 个 HTTP 路径 | 全部存在 | 全部存在 | ✅ 路径一致 |
+| 69 个业务 HTTP 路径 | 全部存在 | 全部存在（另有 2 个发现端点） | ✅ 路径一致 |
 | 查询参数 | GET 参数覆盖 POST 参数 | 同（`mergeParams`） | ✅ |
 | 业务响应 | `{success:true, ...}` / `{success:false, error}` | 同 | ✅ |
 | 参数缺失 | 多为 `200 + {error}` | `400 + {error}` | ⚠️ 见下 |
@@ -468,7 +470,7 @@ extension/
 设计要点：
 
 1. **只替换后台**。页面内交互（`content-script.js`）与配置面板（`popup.*`）一行未改，
-   避免升级时丢失既有体验；本版 69 个端点用到的 content-script action 与原实现完全对齐，
+   避免升级时丢失既有体验；本版 69 个业务端点用到的 content-script action 与原实现完全对齐，
    由 `test/extension.test.js` 逐个比对。
 2. **补全消息契约**。popup 依赖 7 个 worker 消息
    （`getConnectionStatus`、`getConfig`、`setClientId`、`generateNewClientId`、

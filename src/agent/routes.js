@@ -10,6 +10,7 @@
 'use strict';
 
 const { isRestrictedUrl } = require('./tab-bridge');
+const { buildApiDoc } = require('./api-descriptor');
 
 /* ==================== parameter helpers ==================== */
 
@@ -105,6 +106,18 @@ function registerBrowserRoutes(app, ctx) {
       registeredDomains: app.status().registered ? [app.domain] : []
     });
   });
+
+  /* ---------- 发现（仅在配置 token 时仍然公开） ---------- */
+
+  const sendApiDoc = (req, res) => {
+    // Never cache: apiBase follows the live tunnel domain, so a stored copy
+    // would keep advertising the old domain after a clientId rebind.
+    res.set('cache-control', 'no-cache');
+    return res.json(buildApiDoc({ app: app, version: ctx.version }));
+  };
+
+  app.get('/api.json', sendApiDoc);
+  app.get('/apis', sendApiDoc);
 
   /* ---------- 页面信息 ---------- */
 

@@ -1,6 +1,8 @@
 # API 文档 · DTNS 浏览器 Agent（v2.0）
 
-本文档覆盖 `src/agent/routes.js` 注册的全部 **69 个 HTTP 端点**。
+本文档覆盖 `src/agent/routes.js` 注册的全部 **71 个 HTTP 端点**：69 个业务端点 +
+2 个发现端点（`/api.json`、`/apis`）。机器可读版本由 `/api.json` 自身提供，端点元数据的
+单一数据源是 `src/agent/api-catalog.js`（`test/descriptor.test.js` 会校验它与路由表一致）。
 
 ---
 
@@ -41,6 +43,10 @@ Authorization: Bearer <token>
 ```
 
 未配置 token 时不校验（与旧版行为一致）。生产部署建议开启。
+
+例外：`/api.json` 与 `/apis` 始终公开（见 2.4），否则调用方在拿到 token 之前无法发现 API。
+这两条路径的响应只说明「是否需要鉴权」，不包含 token 值。需要全部端点都走鉴权时，创建 agent 时传
+`publicPaths: []`。
 
 ### 1.2 两种响应信封
 
@@ -106,6 +112,52 @@ Authorization: Bearer <token>
 ```json
 { "success": true, "clientId": "abc123…", "registeredDomains": ["browser2.abc123….html.dtns.top"] }
 ```
+
+### 2.4 `GET /api.json`（发现端点，始终公开）
+
+返回整份端点目录，供 Agent / 低代码平台在拿到 token 之前自动发现能力。响应带
+`Cache-Control: no-cache`，因为 `apiBase` 跟随实时隧道域名，clientId 热重绑后会立即变化。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| schemaVersion | number | 文档结构版本，当前为 `1` |
+| apiBase | string | 当前访问基址，如 `http://browser2.<clientId>.html.dtns.top` |
+| clientId | string | 当前 clientId |
+| generatedAt | string | 生成时间（ISO 8601） |
+| transport | object | 协议版本、支持的方法、CORS、响应头、SSE / WebSocket 支持情况 |
+| auth | object | `required`、`scheme`、`header`、`queryParam`、`publicPaths`；**不含 token 值** |
+| conventions | object | 参数合并顺序、两种响应信封、代理层错误码、体积上限、`readOnly` / `danger` 含义 |
+| aliases | string[] | 同内容的其他路径，当前为 `["/apis"]` |
+| stats | object | 端点总数、分组数、只读 / 写 / 危险端点数量 |
+| groups | array | 按 12 个分组组织的端点 |
+| endpoints | array | 扁平端点列表，内容与 `groups` 一致 |
+| examples | string[] | 三条 curl 示例 |
+
+单个端点的结构：
+
+```json
+{
+  "method": "GET",
+  "path": "/api/click",
+  "group": "交互",
+  "summary": "点击 CSS 选择器匹配的元素",
+  "readOnly": false,
+  "params": [
+    { "name": "selector", "type": "string", "required": true, "description": "CSS 选择器" }
+  ]
+}
+```
+
+`readOnly: true` 表示无副作用，可安全重试或批量调用；`danger: true` 表示可执行任意代码或会
+更换隧道域名（`/api/script/evaluate`、`/api/console/exec`、`/api/config/*`），调用前应先与用户确认。
+
+```bash
+curl "http://browser2.<clientId>.html.dtns.top/api.json"
+```
+
+### 2.5 `GET /apis`
+
+`/api.json` 的别名，响应完全相同。
 
 ---
 

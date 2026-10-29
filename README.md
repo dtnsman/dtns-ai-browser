@@ -13,7 +13,7 @@
    DTNS 隧道服务端
         ▲  wss:// 出站连接（无需公网 IP、无需开放端口）
         │
-你的 Chrome（MV3 扩展）── 69 个 HTTP 端点 ── tabs / DOM / 截图 / 网络 / 控制台
+你的 Chrome（MV3 扩展）── 71 个 HTTP 端点 ── tabs / DOM / 截图 / 网络 / 控制台
 ```
 
 ---
@@ -95,7 +95,7 @@ Go、Java、PHP、n8n、Dify、Coze、影刀，只要能发 HTTP 就能接入。
 
 ### 5. 面向「取数据」而非「模拟操作」
 
-69 个端点里有大量**结构化读取**能力，专为 LLM / 数据管道设计：
+71 个端点里有大量**结构化读取**能力，专为 LLM / 数据管道设计：
 
 - 页面：`/api/page/visible-text`、`/api/page/visible-text/blocks`、`/api/page/forms`、`/api/page/links`、`/api/page/images`
 - 元素：`/api/page/clickable-elements`、`/api/element/info`、`/api/element/position`
@@ -107,9 +107,15 @@ Go、Java、PHP、n8n、Dify、Coze、影刀，只要能发 HTTP 就能接入。
 ### 6. 工程化程度可验证
 
 - `node --test` **185 个用例全绿**，`src/` 行覆盖率 **94.14%**
-- 真机联调 **72 项**、覆盖 **68/69** 条路由
+- 真机联调 **72 项**、覆盖 **68/69** 条业务路由
 - 三层解耦（协议 / 传输 / 路由 / 能力），`ChromeAdapter` 可注入 mock，**不依赖真实浏览器即可测试**
 - 二进制 DTNS 帧传输（body 原样透传，不 base64 膨胀），协议版本协商 + 心跳 + 僵尸连接检测 + 指数退避重连
+
+### 7. 可被 Agent 自动发现
+
+`GET /api.json`（别名 `/apis`）返回整份能力目录：端点分组、参数类型与默认值，以及
+`readOnly` / `danger` 标记。LLM 或低代码平台不用先读文档就能生成正确调用；即使配置了
+`token`，这两条发现路径仍然公开（返回体里只有“是否需要鉴权”，不含 token 本身）。
 
 ---
 
@@ -143,6 +149,9 @@ Go、Java、PHP、n8n、Dify、Coze、影刀，只要能发 HTTP 就能接入。
 ```bash
 curl http://browser2.<clientId>.html.dtns.top/health
 # {"status":"ok","clientId":"…","registeredDomains":["browser2.….html.dtns.top"],…}
+
+curl http://browser2.<clientId>.html.dtns.top/api.json
+# 端点目录：apiBase / auth / groups / endpoints（含参数与默认值）
 ```
 
 **想保留旧插件的 clientId**：把 `extension/` 的内容替换到旧插件目录（同一路径）后「重新加载」。
@@ -197,7 +206,9 @@ src/
     http-proxy.js             # HttpProxyApp：组装三层 + CORS + 鉴权
   agent/
     browser-agent.js          # createBrowserAgent：装配浏览器能力与路由
-    routes.js                 # 69 个 HTTP 端点
+    routes.js                 # 71 个 HTTP 端点
+    api-catalog.js            # 端点元数据（参数/分组/只读/危险），单一数据源
+    api-descriptor.js         # 由 catalog + 实时域名生成 /api.json
     chrome-adapter.js         # 唯一接触 chrome.* 的地方
     tab-bridge.js             # content-script RPC（含注入回退、超时）
     debugger-hub.js           # 每标签页单一 debugger 会话，引用计数复用
@@ -209,7 +220,7 @@ src/
   util/primitives.js          # ProxyError / Emitter
 docs/
   DESIGN.md                   # 设计报告
-  API.md                      # 69 个端点的参数、响应与错误码
+  API.md                      # 71 个端点的参数、响应与错误码
   TEST-REPORT.md              # 测试报告
   LIVE-TEST.md                # 真机联调报告
   PERFORMANCE.md              # v1.0 → v2.0 网络层对比
@@ -240,7 +251,7 @@ node --test --experimental-test-coverage --test-coverage-include="src/**" "test/
 
 ## 九、文档
 
-- [API 文档](docs/API.md) — 69 个端点的参数、响应与错误码
+- [API 文档](docs/API.md) — 71 个端点的参数、响应与错误码
 - [设计报告](docs/DESIGN.md) — 架构、协议、取舍与限制
 - [测试报告](docs/TEST-REPORT.md) — 策略、结果、覆盖率、发现并修复的缺陷
 - [真机联调报告](docs/LIVE-TEST.md) — 真实浏览器实例上的 72 项联调

@@ -32,6 +32,8 @@ const { ConsoleCollector, formatRemoteObject } = require('./agent/console-collec
 const { ScreenshotScheduler } = require('./agent/screenshot-scheduler');
 const { sniffImage, base64ByteLength } = require('./agent/image-info');
 const { registerBrowserRoutes } = require('./agent/routes');
+const { API_CATALOG, API_ALIASES, DISCOVERY_PATHS, GROUP_ORDER } = require('./agent/api-catalog');
+const { buildApiDoc } = require('./agent/api-descriptor');
 const { createBrowserAgent, browserDomain, DEFAULT_DOMAIN_PREFIX } = require('./agent/browser-agent');
 
 module.exports = {
@@ -59,6 +61,14 @@ module.exports = {
   browserDomain: browserDomain,
   DEFAULT_DOMAIN_PREFIX: DEFAULT_DOMAIN_PREFIX,
   registerBrowserRoutes: registerBrowserRoutes,
+
+  // API discovery (/api.json)
+  API_CATALOG: API_CATALOG,
+  API_ALIASES: API_ALIASES,
+  DISCOVERY_PATHS: DISCOVERY_PATHS,
+  GROUP_ORDER: GROUP_ORDER,
+  buildApiDoc: buildApiDoc,
+
   ChromeAdapter: ChromeAdapter,
   ConfigStore: ConfigStore,
   generateClientId: generateClientId,

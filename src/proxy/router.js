@@ -370,8 +370,24 @@ class Router {
   }
 
   /**
+   * True when the request path is explicitly readable without a token.
+   *
+   * Discovery documents (the agent's own API catalog) have to answer before the
+   * caller owns a token, otherwise they can never be discovered. The list is
+   * opt-in: an empty/absent value keeps every path behind `authCheck`, which is
+   * the pre-existing behaviour.
+   */
+  isPublic(req, publicPaths) {
+    if (!publicPaths) return false;
+    if (typeof publicPaths === 'function') return !!publicPaths(req);
+    if (Array.isArray(publicPaths)) return publicPaths.indexOf(req.path) !== -1;
+    return !!publicPaths[req.path];
+  }
+
+  /**
    * Dispatch one request. `options`:
    *   authCheck(req) -> boolean | null   null/undefined means "no auth configured"
+   *   publicPaths []/Set/fn              paths exempt from authCheck
    *   maxBodySize, exposeErrors, emitError(error), onComplete(status)
    */
   handle(req, res, options) {
@@ -390,7 +406,7 @@ class Router {
       return;
     }
 
-    if (opts.authCheck && !opts.authCheck(req)) {
+    if (!this.isPublic(req, opts.publicPaths) && opts.authCheck && !opts.authCheck(req)) {
       res.set('www-authenticate', 'Bearer realm="dtns-agent"');
       res.status(401).json({
         ok: false,

@@ -129,8 +129,8 @@ copyApiUrlBtn.addEventListener('click', async () => {
 // 打开API地址
 openApiUrlBtn.addEventListener('click', () => {
   if (currentApiUrl) {
-    // 打开API信息页面
-    openUrlInNewTab(currentApiUrl + '/api/info');
+    // 打开机器可读的端点目录，Agent / 低代码平台可直接导入
+    openUrlInNewTab(currentApiUrl + '/api.json');
   } else {
     showToast('❌ API地址未就绪', true);
   }
